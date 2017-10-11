@@ -1,5 +1,10 @@
 import std.stdio;
 
+enum PREAMBLE =
+"#include <gtk/gtk.h>\n" ~
+"#define GETTEXT_PACKAGE \"gtk-snippets\"\n" ~
+"#include <glib/gi18n-lib.h>\n";
+
 
 struct Snippet {
   string filename;
@@ -113,7 +118,7 @@ bool compileTest(const ref Snippet snippet) {
 	string snippetFilename = getSnippetId(snippet) ~ ".c";
 
 	// First, we try to use the snippet inside a function
-	string cText = "#include <gtk/gtk.h>\nstatic void testThis() {\n";
+	string cText = PREAMBLE ~ "static void testThis() {\n";
 	cText ~= snippet.text;
 	cText ~= "\n}\n";
 	cText ~= "int main(int argc, char **argv) { testThis(); return 0; }\n";
@@ -137,7 +142,7 @@ bool compileTest(const ref Snippet snippet) {
 		//write(gccProc1.stderr);
 
 		// Now for the second time...
-		string cText2 = "#include <gtk/gtk.h>\n ";
+		string cText2 = PREAMBLE;
 		cText2 ~= snippet.text;
 		cText2 ~= "\n";
 		cText2 ~= "int main(int argc, char **argv) { return 0; }";
@@ -149,9 +154,15 @@ bool compileTest(const ref Snippet snippet) {
 
 		if (wait(gccProc2.pid) != 0) {
 			writeln("Snippet ", snippet.filename, ":", snippet.lineNumber, " Failed. Code: ");
-			writeln(cText2);
+			writeln("----------> IN FUNCTION");
+			writeln(cText);
+			foreach(line; gccProc1.stderr.byLine) {
+				writeln(line);
+			}
 
 			// Unfortunately, I don't know how to print this properly...
+			writeln("---------> FREESTANDING");
+			writeln(cText2);
 			foreach(line; gccProc2.stderr.byLine) {
 				writeln(line);
 			}
