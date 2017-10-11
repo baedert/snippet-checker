@@ -17,7 +17,9 @@ void main(string[] args) {
 	foreach (string filename; args[1..$]) {
 		writeln("Checking ", filename, "...");
 
-		checkSnippets(filename);
+		if (!checkSnippets(filename)) {
+			return;
+		}
 	}
 }
 
@@ -26,7 +28,7 @@ import std.string;
 import std.algorithm;
 import std.range;
 
-void checkSnippets(string filename) {
+bool checkSnippets(string filename) {
   	string text = readText(filename);
 
   	auto lines = text.lineSplitter;
@@ -67,9 +69,8 @@ void checkSnippets(string filename) {
 			//writeln ("");
 
 			if (!compileTest(snippet)) {
-				return;
+				return false;
 			}
-			writeln("OK");
 		}
 
 
@@ -78,6 +79,8 @@ void checkSnippets(string filename) {
 			lineNumber ++;
 		}
 	}
+
+	return true;
 }
 
 pure @safe string
