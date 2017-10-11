@@ -129,7 +129,7 @@ bool compileTest(const ref Snippet snippet) {
 	toFile(cText, snippetFilename);
 
 
-	string[] cmdLine = ["gcc"];
+	string[] cmdLine = ["gcc", "-Wall"];
 	cmdLine ~= pkgs;
 	cmdLine ~= snippetFilename;
 
