@@ -124,12 +124,36 @@ bool compileTest(const ref Snippet snippet) {
 	string[] cmdLine = ["gcc"];
 	cmdLine ~= pkgs;
 	cmdLine ~= snippetFilename;
-	auto gccProc = spawn(cmdLine);
 
-	if (wait(gccProc) != 0) {
-		writeln("Snippet ", snippet.filename, ":", snippet.lineNumber, " Failed. Code: ");
-		writeln(cText);
-		return false;
+	// We first try to put the snippet into a function.
+	// If that doesn't work, we assume the snippet contains a function itself
+	// so we try it again without the surrounding function...
+	auto gccProc1 = pipeProcess(cmdLine, Redirect.stdout | Redirect.stderr);
+
+	if (wait(gccProc1.pid) != 0) {
+		//write(gccProc1.stderr);
+
+		// Now for the second time...
+		string cText2 = "#include <gtk/gtk.h>\n ";
+		cText2 ~= snippet.text;
+		cText2 ~= "\n";
+		cText2 ~= "int main(int argc, char **argv) { return 0; }";
+		if (exists(snippetFilename))
+			remove(snippetFilename);
+		toFile(cText2, snippetFilename);
+
+		auto gccProc2 = pipeProcess(cmdLine, Redirect.stdout | Redirect.stderr);
+
+		if (wait(gccProc2.pid) != 0) {
+			writeln("Snippet ", snippet.filename, ":", snippet.lineNumber, " Failed. Code: ");
+			writeln(cText2);
+
+			// Unfortunately, I don't know how to print this properly...
+			foreach(line; gccProc2.stderr.byLine) {
+				writeln(line);
+			}
+			return false;
+		}
 	}
 
 	return true;
