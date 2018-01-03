@@ -1,9 +1,13 @@
 import std.stdio;
 
-enum PREAMBLE =
-"#include <gtk/gtk.h>\n" ~
-"#define GETTEXT_PACKAGE \"gtk-snippets\"\n" ~
-"#include <glib/gi18n-lib.h>\n";
+enum PREAMBLE = q{
+#include <gtk/gtk.h>
+#include <epoxy/gl.h>
+#define GETTEXT_PACKAGE "gtk-snippets"
+#include <glib/gi18n-lib.h>
+// Generic function in case we have some data we need
+static void* get_some_data (int k) { return NULL; }
+};
 
 
 struct Snippet {
@@ -22,9 +26,7 @@ void main(string[] args) {
 	foreach (string filename; args[1..$]) {
 		writeln("Checking ", filename, "...");
 
-		if (!checkSnippets(filename)) {
-			return;
-		}
+		checkSnippets(filename);
 	}
 }
 
@@ -32,6 +34,19 @@ import std.file;
 import std.string;
 import std.algorithm;
 import std.range;
+
+bool isWhitespace(in char c) {
+	return c == ' ' || c == '\n' || c == '\t';
+}
+
+string skipWhitespace(in string input) {
+	size_t startIndex = 0;
+	while (startIndex < input.length &&
+	       input[startIndex].isWhitespace())
+		startIndex++;
+
+	return input[startIndex..$];
+}
 
 bool checkSnippets(string filename) {
   	string text = readText(filename);
@@ -68,6 +83,11 @@ bool checkSnippets(string filename) {
 
 			snippet.filename = filename;
 			snippet.text = snippetText;
+			if (snippet.text.skipWhitespace.indexOf("<") == 0) {
+				// Some XML snippets are marked with language="C",
+				// So bail out here.
+				continue;
+			}
 
 			//writeln ("");
 			//writeln(snippet.text);
@@ -160,7 +180,6 @@ bool compileTest(const ref Snippet snippet) {
 				writeln(line);
 			}
 
-			// Unfortunately, I don't know how to print this properly...
 			writeln("---------> FREESTANDING");
 			writeln(cText2);
 			foreach(line; gccProc2.stderr.byLine) {
