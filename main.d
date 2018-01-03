@@ -3,10 +3,17 @@ import std.stdio;
 enum PREAMBLE = q{
 #include <gtk/gtk.h>
 #include <epoxy/gl.h>
+#include <locale.h>
+#include <fontconfig/fontconfig.h>
 #define GETTEXT_PACKAGE "gtk-snippets"
 #include <glib/gi18n-lib.h>
 // Generic function in case we have some data we need
 static void* get_some_data (int k) { return NULL; }
+// GtkWidget specific hack.
+gboolean i_am_in_height_for_width_mode = FALSE;
+gboolean some_condition = FALSE;
+typedef GtkWidgetClass FooWidgetClass;
+typedef GtkWidget FooWidget;
 };
 
 
