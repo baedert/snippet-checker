@@ -156,7 +156,11 @@ bool compileTest(const ref Snippet snippet) {
 	toFile(cText, snippetFilename);
 
 
-	string[] cmdLine = ["gcc", "-Wall"];
+	string[] cmdLine = ["gcc", "-Wall", "-Werror",
+	                    "-Wno-unused-function",
+	                    "-Wno-unused-variable",
+	                    "-Wno-unused-but-set-variable",
+	                   ];
 	cmdLine ~= pkgs;
 	cmdLine ~= snippetFilename;
 
