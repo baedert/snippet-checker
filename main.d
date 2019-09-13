@@ -161,7 +161,8 @@ bool compileTest(const ref Snippet snippet) {
 	                    "-Wno-unused-variable",
 	                    "-Wno-unused-but-set-variable",
 	                   ];
-	cmdLine ~= pkgs;
+	// we get an empty element sometimes for some reason, so filter that one out.
+	cmdLine ~= pkgs.filter!(a => a.length > 0).array;
 	cmdLine ~= snippetFilename;
 
 	// We first try to put the snippet into a function.
